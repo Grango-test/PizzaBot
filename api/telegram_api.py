@@ -1,5 +1,5 @@
 from telegram.ext import *
-import api.keys
+import os
 import core.core as core
 
 bot = core.PizzaBot()
@@ -8,12 +8,13 @@ bot = core.PizzaBot()
 def start_command(update, context):
     update.message.reply_text('Введите /help для списка доступных команд')
 
+
 def help_command(update, context):
     update.message.reply_text('Вы можете начать заказ введя /order и отменить его в любой момент введя /cancel')
 
 
 def cancel_command(update, context):
-    if bot.state is not 'asleep':
+    if bot.state != 'asleep':
         bot.cancel()
         bot.end()
         bot.set_size(None)
@@ -30,19 +31,19 @@ def order_command(update, context):
 
 def handle_message(update, context):
     text = str(update.message.text).lower()
-    print(text)
-    if bot.state is 'size_order':
+
+    if bot.state == 'size_order':
         if text in ('большую' , 'маленькую'):
             bot.set_size(text)
             bot.next()
             update.message.reply_text('Как вы будете платить?')
         else:
             update.message.reply_text('Я не знаю такой пиццы. Только большую и маленькую')
-    elif bot.state is 'payment_method':
+    elif bot.state == 'payment_method':
         bot.set_payment_method(text)
         bot.next()
         update.message.reply_text(f'Вы хотите {bot.size} пиццу, оплата - {bot.payment_method}?')
-    elif bot.state is 'confirmation':
+    elif bot.state == 'confirmation':
         if text == "да":
             bot.confirm()
             bot.end()
@@ -62,7 +63,7 @@ def error(update, context):
 
 
 def main():
-    updater = Updater(api.keys.token, use_context=True)
+    updater = Updater(os.environ.get('TOKEN'), use_context=True)
     dp = updater.dispatcher
 
     dp.add_handler(CommandHandler("start", start_command))
